@@ -2,7 +2,7 @@ import argparse
 import sys
 import requests
 from bs4 import BeautifulSoup
-from table_miner import *
+from table_miner import mine
 
 
 def fetch_doc(url):
@@ -48,10 +48,11 @@ def main():
     tables = table_rec(args.url)
 
     if not tables:
-        print("Source for scrapping not found")
+        print("Source for scraping not found")
         sys.exit(0)
 
-    print(mine(tables))
+
+    mine(tables,args)
 
 
 if __name__ == "__main__":
