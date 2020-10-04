@@ -39,15 +39,45 @@ def find_sport(table, sport):
                 return {'start': start, 'end': end}
     else:
         marker = table.find("tr")['class'][0]
-        for tr in table.find_all("tr",class_=marker):
+        for tr in table.find_all("tr", class_=marker):
             if tr.find('td').string.lower() == sport.lower():
                 start = tr
-                end = tr.find_next_sibling("tr",class_=marker)
+                end = tr.find_next_sibling("tr", class_=marker)
                 return {'start': start, 'end': end}
+
+def fetch_data(delim, sport):
+    ret = []
+    for tr in delim['start'].find_next_siblings():
+        if tr == delim['end']:
+            break
+        data = {"sport": sport, "name": "",
+                "position": "", "phone": "", "email": ""}
+        i = 0
+        for val in tr.stripped_strings:
+            
+            if i == 0:
+                data['name'] = val
+            elif i == 1:
+                data['position'] = val
+            else:
+                if re.search("\d+-\d+", val):
+                    data['phone'] = val
+                elif re.search("@", val):
+                    data['email'] = val
+            i = i + 1
+        ret.append(data)
+    return ret
 
 
 def mine(tables, args):
-    # tables = filter_tables(tables)
-    delim = find_sport(tables[0], args.sport)
-    print(repr(delim['start']))
-    print(repr(delim['end']))
+    ret = []
+    for table in tables:
+        # tables = filter_tables(tables)
+        try:
+            delim = find_sport(table, args.sport)
+        except:
+            pass
+        
+        if delim :
+            ret.extend(fetch_data(delim,args.sport))
+    return ret

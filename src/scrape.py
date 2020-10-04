@@ -52,7 +52,7 @@ def main():
         sys.exit(0)
 
 
-    mine(tables,args)
+    print(repr(mine(tables,args)))
 
 
 if __name__ == "__main__":
