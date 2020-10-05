@@ -125,3 +125,4 @@ dmypy.json
 .pyre/
 # Added some
 .vscode/
+src/results.json

@@ -2,22 +2,6 @@
 import sys
 import re
 
-# Add support for <tr>
-
-
-def filter_tables(_tables, args):
-    if args.element_name == "table":
-        if args.element_index:
-            if len(_tables) <= int(args.element_index):
-                print("Table index is under range")
-                return None
-            else:
-                return [_tables[int(args.element_index)]]
-        elif args.element_id:
-            return _tables.find_all(id=args.element_id)
-        elif args.element_class:
-            return _tables.find_all(class_=args.element_class)
-
 
 def find_sport(table, sport):
     single = False
@@ -51,19 +35,37 @@ def find_sport(table, sport):
                 return {'start': start, 'end': end, 'suff': suff}
 
 
-def fetch_data(delim, sport):
+def fetch_data(delim, args):
+    sport = args.sport
     ret = []
     start = delim['start']
     end = delim['end']
-
+    index = -1
+    indexFound = False
 
     for tr in start.find_next_siblings():
+        index = index + 1
         if tr == end:
             break
+
+        # Filtering rows
+        if args.element_name == "tr":
+            if args.element_index:
+                if index != int(args.element_index):
+                    continue
+                else:
+                    indexFound = True
+            if args.element_class:
+                if not (tr.has_attr('class') and args.element_class in tr['class']):
+                    continue
+            if args.element_id:
+                if not (tr.has_attr('id') and tr['id'] == args.element_class):
+                    continue
+
         data = {"sport": sport.lower(), "name": "",
                 "position": "", "phone": "", "email": ""}
         i = 0
-        
+
         for val in tr.stripped_strings:
             if i == 0:
                 data['name'] = val
@@ -75,22 +77,39 @@ def fetch_data(delim, sport):
                 elif re.search("@", val):
                     data['email'] = val.lower() + \
                         (delim['suff'] if 'suff' in delim else '')
-                    
+
             i = i + 1
         ret.append(data)
+        index = index + 1
+        if indexFound:
+            break
     return ret
 
 
 def mine(tables, args):
     ret = []
+    index = 0
     for table in tables:
-        # tables = filter_tables(tables)
+        index = index + 1
+
+        # Filtering tables
+        if args.element_name == "table":
+            if args.element_index:
+                if index != int(args.element_idex):
+                    continue
+            if args.element_class:
+                if not (table.has_attr('class') and args.element_class in table['class'] ):
+                    continue
+            if args.element_id:
+                if not (table.has_attr('id') and table['id'][0] == args.element_id):
+                    continue
+
         delim = None
         try:
             delim = find_sport(table, args.sport)
         except:
-            pass
+            delim = None
         if delim:
-            ret.extend(fetch_data(delim, args.sport))
+            ret.extend(fetch_data(delim, args))
 
     return ret

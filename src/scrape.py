@@ -15,14 +15,14 @@ def fetch_doc(url):
         return BeautifulSoup(resp.text, "html.parser")
 
 
-def table_rec(url):
+def table_rec(url, args):
     doc = fetch_doc(url)
     tables = doc.find_all("table")
     if not tables:
         iframes = doc.find_all("iframe")
         for iframe in iframes:
             src = iframe['src'] if iframe['src'][0:2] != '//' else "http:"+iframe['src']
-            ret = table_rec(src)
+            ret = table_rec(src, args)
             if ret:
                 tables.extend(ret)
     return tables
@@ -42,29 +42,37 @@ def main():
 
     args = parser.parse_args(sys.argv[1:])
 
-    print("Searching {} for {} ".format(args.url,args.sport))
+    print("Searching {} for {} ".format(args.url, args.sport))
 
     if args.element_name and args.element_id is None and args.element_index is None and args.element_class is None:
         print('--element_name requires additional arguments')
         sys.exit(1)
 
-    tables = table_rec(args.url)
+    tables = table_rec(args.url, args)
 
     if not tables:
         print("Source for scraping not found")
         sys.exit(0)
 
-    print("Total {} tables found in source URL".format(len(tables)))
+    # Filtering tables by index
+    elif args.element_index and args.element_name == "table":
+        if len(tables) >= int(args.element_index) or int(args.element_index) < 0:
+            print("Invalid --element_index passed for table search")
+            sys.exit(3)
+        else:
+            tables = [tables[int(args.element_index)]]
+
+    print("Total {} tables found in source URL with given options".format(len(tables)))
 
     data = mine(tables, args)
     results = json.dumps(data, indent=4)
-    
+
     with open('results.json', 'w') as out:
         out.write(results)
-    
+
     print('Total {} results found. Results written to results.json.'.format(len(data)))
     print(results)
-    
+
     sys.exit(0)
 
 
