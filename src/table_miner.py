@@ -30,7 +30,7 @@ def find_sport(table, sport):
     if single:
         for tr in table.find_all("tr"):
             cols = tr.find_all(re.compile("^t[dh]"))
-            if len(cols) == 1 and next(cols[0].stripped_strings).lower() == sport.lower():
+            if len(cols) == 1 and next(cols[0].stripped_strings).lower().replace(" ", "") == sport.lower().replace(" ", ""):
                 start = tr
                 for sibling in tr.find_next_siblings():
                     if len(sibling.find_all(re.compile("^t[dh]"))) == 1:
@@ -39,22 +39,32 @@ def find_sport(table, sport):
                 return {'start': start, 'end': end}
     else:
         marker = table.find("tr")['class'][0]
+        for s in table.find("tr").stripped_strings:
+            if re.search("@", s):
+                suff = s[1:]
+                break
+
         for tr in table.find_all("tr", class_=marker):
-            if tr.find('td').string.lower() == sport.lower():
+            if tr.find('td').string.lower().replace(" ", "") == sport.lower().replace(" ", ""):
                 start = tr
-                end = tr.find_next_sibling("tr", class_=marker)
-                return {'start': start, 'end': end}
+                end = start.find_next_sibling(class_=marker)
+                return {'start': start, 'end': end, 'suff': suff}
+
 
 def fetch_data(delim, sport):
     ret = []
-    for tr in delim['start'].find_next_siblings():
-        if tr == delim['end']:
+    start = delim['start']
+    end = delim['end']
+
+
+    for tr in start.find_next_siblings():
+        if tr == end:
             break
-        data = {"sport": sport, "name": "",
+        data = {"sport": sport.lower(), "name": "",
                 "position": "", "phone": "", "email": ""}
         i = 0
+        
         for val in tr.stripped_strings:
-            
             if i == 0:
                 data['name'] = val
             elif i == 1:
@@ -63,7 +73,9 @@ def fetch_data(delim, sport):
                 if re.search("\d+-\d+", val):
                     data['phone'] = val
                 elif re.search("@", val):
-                    data['email'] = val
+                    data['email'] = val.lower() + \
+                        (delim['suff'] if 'suff' in delim else '')
+                    
             i = i + 1
         ret.append(data)
     return ret
@@ -73,11 +85,12 @@ def mine(tables, args):
     ret = []
     for table in tables:
         # tables = filter_tables(tables)
+        delim = None
         try:
             delim = find_sport(table, args.sport)
         except:
             pass
-        
-        if delim :
-            ret.extend(fetch_data(delim,args.sport))
+        if delim:
+            ret.extend(fetch_data(delim, args.sport))
+
     return ret

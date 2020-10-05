@@ -3,6 +3,7 @@ import sys
 import requests
 from bs4 import BeautifulSoup
 from table_miner import mine
+import json
 
 
 def fetch_doc(url):
@@ -41,6 +42,8 @@ def main():
 
     args = parser.parse_args(sys.argv[1:])
 
+    print("Searching {} for {} ".format(args.url,args.sport))
+
     if args.element_name and args.element_id is None and args.element_index is None and args.element_class is None:
         print('--element_name requires additional arguments')
         sys.exit(1)
@@ -51,8 +54,18 @@ def main():
         print("Source for scraping not found")
         sys.exit(0)
 
+    print("Total {} tables found in source URL".format(len(tables)))
 
-    print(repr(mine(tables,args)))
+    data = mine(tables, args)
+    results = json.dumps(data, indent=4)
+    
+    with open('results.json', 'w') as out:
+        out.write(results)
+    
+    print('Total {} results found. Results written to results.json.'.format(len(data)))
+    print(results)
+    
+    sys.exit(0)
 
 
 if __name__ == "__main__":
