@@ -67,7 +67,7 @@ def main():
     data = mine(tables, args)
     results = json.dumps(data, indent=4)
 
-    with open('results.json', 'w') as out:
+    with open('../results.json', 'w') as out:
         out.write(results)
 
     print('Total {} results found. Results written to results.json.'.format(len(data)))
