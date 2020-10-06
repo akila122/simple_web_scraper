@@ -111,9 +111,9 @@ def mine(tables, args):
         delim = None
         try:
             delim = find_sport(table, args.sport)
-        except:
-            delim = None
-        if delim:
+        except Exception as err:
+            print(err)
+        else:
             ret.extend(fetch_data(delim, args))
 
     return ret
