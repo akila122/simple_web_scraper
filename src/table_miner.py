@@ -41,7 +41,11 @@ def fetch_data(delim, args):
     start = delim['start']
     end = delim['end']
     index = -1
-    indexFound = False
+    index_found = False
+
+    # Bug1Fix
+    outter_class = start.has_attr(
+        "class") and args.element_name == "tr" and args.element_class in start['class']
 
     for tr in start.find_next_siblings():
         index = index + 1
@@ -54,9 +58,9 @@ def fetch_data(delim, args):
                 if index != int(args.element_index):
                     continue
                 else:
-                    indexFound = True
+                    index_found = True
             if args.element_class:
-                if not (tr.has_attr('class') and args.element_class in tr['class']):
+                if not outter_class and not (tr.has_attr('class') and args.element_class in tr['class']):
                     continue
             if args.element_id:
                 if not (tr.has_attr('id') and tr['id'] == args.element_class):
@@ -81,7 +85,7 @@ def fetch_data(delim, args):
             i = i + 1
         ret.append(data)
         index = index + 1
-        if indexFound:
+        if index_found:
             break
     return ret
 
@@ -98,7 +102,7 @@ def mine(tables, args):
                 if index != int(args.element_idex):
                     continue
             if args.element_class:
-                if not (table.has_attr('class') and args.element_class in table['class'] ):
+                if not (table.has_attr('class') and args.element_class in table['class']):
                     continue
             if args.element_id:
                 if not (table.has_attr('id') and table['id'][0] == args.element_id):
