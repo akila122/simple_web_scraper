@@ -21,7 +21,8 @@ def table_rec(url, args):
     if not tables:
         iframes = doc.find_all("iframe")
         for iframe in iframes:
-            src = iframe['src'] if iframe['src'][0:2] != '//' else "http:"+iframe['src']
+            src = iframe['src'] if iframe['src'][0:2] != '//' \
+                else "http:"+iframe['src']
             ret = table_rec(src, args)
             if ret:
                 tables.extend(ret)
@@ -44,7 +45,8 @@ def main():
 
     print("Searching {} for {} ".format(args.url, args.sport))
 
-    if args.element_name and args.element_id is None and args.element_index is None and args.element_class is None:
+    if args.element_name and args.element_id is None \
+       and args.element_index is None and args.element_class is None:
         print('--element_name requires additional arguments')
         sys.exit(1)
 
@@ -56,13 +58,15 @@ def main():
 
     # Filtering tables by index
     elif args.element_index and args.element_name == "table":
-        if len(tables) >= int(args.element_index) or int(args.element_index) < 0:
-            print("Invalid --element_index passed for table search")
+        if len(tables) <= int(args.element_index) \
+           or int(args.element_index) < 0:
+            print(
+                "Invalid --element_index {} passed for {} tables"
+                .format(args.element_index, len(tables)))
             sys.exit(3)
-        else:
-            tables = [tables[int(args.element_index)]]
 
-    print("Total {} tables found in source URL with given options".format(len(tables)))
+    print("Total {} tables found in source URL with given options"
+          .format(len(tables)))
 
     data = mine(tables, args)
     results = json.dumps(data, indent=4)
@@ -70,7 +74,8 @@ def main():
     with open('../results.json', 'w') as out:
         out.write(results)
 
-    print('Total {} results found. Results written to results.json.'.format(len(data)))
+    print('Total {} results found. Results written to results.json.'
+          .format(len(data)))
     print(results)
 
     sys.exit(0)

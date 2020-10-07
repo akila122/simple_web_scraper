@@ -1,5 +1,3 @@
-
-import sys
 import re
 
 
@@ -14,7 +12,9 @@ def find_sport(table, sport):
     if single:
         for tr in table.find_all("tr"):
             cols = tr.find_all(re.compile("^t[dh]"))
-            if len(cols) == 1 and next(cols[0].stripped_strings).lower().replace(" ", "") == sport.lower().replace(" ", ""):
+            if len(cols) == 1 \
+               and next(cols[0].stripped_strings).lower().replace(" ", "") == \
+               sport.lower().replace(" ", ""):
                 start = tr
                 for sibling in tr.find_next_siblings():
                     if len(sibling.find_all(re.compile("^t[dh]"))) == 1:
@@ -29,7 +29,8 @@ def find_sport(table, sport):
                 break
 
         for tr in table.find_all("tr", class_=marker):
-            if tr.find('td').string.lower().replace(" ", "") == sport.lower().replace(" ", ""):
+            if tr.find('td').string.lower().replace(" ", "") == \
+               sport.lower().replace(" ", ""):
                 start = tr
                 end = start.find_next_sibling(class_=marker)
                 return {'start': start, 'end': end, 'suff': suff}
@@ -44,8 +45,9 @@ def fetch_data(delim, args):
     index_found = False
 
     # Bug1Fix
-    outter_class = start.has_attr(
-        "class") and args.element_name == "tr" and args.element_class in start['class']
+    outter_class = start.has_attr("class") \
+        and args.element_name == "tr" \
+        and args.element_class in start['class']
 
     for tr in start.find_next_siblings():
         index = index + 1
@@ -60,7 +62,9 @@ def fetch_data(delim, args):
                 else:
                     index_found = True
             if args.element_class:
-                if not outter_class and not (tr.has_attr('class') and args.element_class in tr['class']):
+                if not outter_class \
+                   and not (tr.has_attr('class')
+                            and args.element_class in tr['class']):
                     continue
             if args.element_id:
                 if not (tr.has_attr('id') and tr['id'] == args.element_class):
@@ -92,28 +96,31 @@ def fetch_data(delim, args):
 
 def mine(tables, args):
     ret = []
-    index = 0
+    index = -1
     for table in tables:
         index = index + 1
 
         # Filtering tables
         if args.element_name == "table":
             if args.element_index:
-                if index != int(args.element_idex):
+                if index != int(args.element_index):
                     continue
             if args.element_class:
-                if not (table.has_attr('class') and args.element_class in table['class']):
+                if not (table.has_attr('class')
+                        and args.element_class in table['class']):
                     continue
             if args.element_id:
-                if not (table.has_attr('id') and table['id'][0] == args.element_id):
+                if not (table.has_attr('id')
+                        and table['id'] == args.element_id):
                     continue
 
         delim = None
         try:
             delim = find_sport(table, args.sport)
-        except Exception as err:
-            print(err)
+        except Exception:
+            pass
         else:
-            ret.extend(fetch_data(delim, args))
+            if delim:
+                ret.extend(fetch_data(delim, args))
 
     return ret
